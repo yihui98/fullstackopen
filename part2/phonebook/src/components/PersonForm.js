@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import axios from 'axios'
+import phoneService from '../services/phonebook.js'
 
 const PersonForm = ({persons, setPersons}) => {
   const [ newName, setNewName ] = useState('')
@@ -14,19 +16,35 @@ const PersonForm = ({persons, setPersons}) => {
     )
 
     if (allNames.includes(newName)){
-      return(
-      alert(`${newName} is already added to phonebook`)
-      )
+      const person = persons.find(n => n.name === newName)
+      const ok = window.confirm(`${person.name} is already added to phonebook,
+       replace the old number with a new one?`)
+      if (ok){
+        const changedNumber = { ...person, number: newNumber }
+        phoneService
+        .update(person.id, changedNumber)
+        .then(returnedNumber => {
+        setPersons(persons.map(person => person.name !== newName ? person : returnedNumber))
+        setNewName('')
+        setNewNumber('')
+    })
+        }
     }
+    else{
     
     const nameObject = {
       name: newName,
       number: newNumber
     }
+    phoneService
+    .create(nameObject)
+    .then(returnedBook=> {
+      setPersons(persons.concat(returnedBook))
+      setNewName('')
+      setNewNumber('')
+    })
 
-    setPersons(persons.concat(nameObject))
-    setNewName('')
-    setNewNumber('')
+  } 
   }
 
   const handleNameChange = (event) => {

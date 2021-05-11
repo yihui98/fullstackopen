@@ -3,6 +3,7 @@ import Contacts from './components/Contacts.js'
 import PersonForm from './components/PersonForm.js'
 import Filter from './components/Filter.js'
 import axios from 'axios'
+import phoneService from './services/phonebook.js'
 
 const App = () => {
   /*
@@ -16,12 +17,10 @@ const App = () => {
   const [persons, setPersons] = useState([])
   
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
+    phoneService
+    .getAll()
+    .then(initialBook => {
+        setPersons(initialBook)
       })
   }, [])
   console.log('render', persons.length, 'persons')
@@ -40,7 +39,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Contacts persons = {persons} newSearch = {newSearch} />
+      <Contacts persons = {persons} newSearch = {newSearch} setPersons = {setPersons} />
     </div>
   )
 }

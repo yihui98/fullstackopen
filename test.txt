@@ -21,3 +21,9 @@ git push origin yourbranchname
 
 
 git pull origin master/ git pull
+
+
+npm install axios
+npm install json-server --save-dev //install json-server as a development dependency
+"server": "json-server -p3001 --watch db.json" //add line to scripts of package.json
+npm run server
