@@ -1,0 +1,23 @@
+npx create-react-app part1
+cd part1
+npm start
+
+npx kill-port 3000
+
+git remote add origin https://github.com/yihui98/fullstackopen.git
+
+
+
+git add <filename>
+
+
+git commit -m "Your message about the commit"
+
+
+git checkout -b <my branch name>
+
+
+git push origin yourbranchname
+
+
+git pull origin master/ git pull

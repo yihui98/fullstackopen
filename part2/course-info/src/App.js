@@ -1,8 +1,6 @@
 import React from 'react'
 import Course from './components/Course.js'
 
-
-
 const App = () => {
   const courses = [
     {
