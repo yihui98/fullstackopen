@@ -2,9 +2,10 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import phoneService from '../services/phonebook.js'
 
-const PersonForm = ({persons, setPersons}) => {
+const PersonForm = ({persons, setPersons, setMessage}) => {
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
+  const [message, setErrorMessage] = useState('')
 
   const addName = (event) => {
     event.preventDefault()
@@ -27,8 +28,10 @@ const PersonForm = ({persons, setPersons}) => {
         setPersons(persons.map(person => person.name !== newName ? person : returnedNumber))
         setNewName('')
         setNewNumber('')
+        setMessage(`${newName} has been added to the phonebook`)
+      
     })
-        }
+  }
     }
     else{
     
@@ -42,6 +45,7 @@ const PersonForm = ({persons, setPersons}) => {
       setPersons(persons.concat(returnedBook))
       setNewName('')
       setNewNumber('')
+      setMessage(`${newName} has been added to the phonebook`)
     })
 
   } 

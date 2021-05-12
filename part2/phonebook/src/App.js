@@ -26,20 +26,65 @@ const App = () => {
   console.log('render', persons.length, 'persons')
 
   const [newSearch, setSearch ] = useState('')
+  const [message, setAddMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const Message = ({message}) => {
+    if (message === ''){
+      return null
+    }
+    console.log(message)
+    const addMessageStyle = {
+      color: 'green',
+      background: 'lightgrey',
+      fontSize: '25px',
+      border: '5px solid rgba(0, 0.05, 0, 0.05)',
+      borderColor: 'green',
+      padding: '10px',
+      margin: '10px'
+    }
+    return(
+      <div style = {addMessageStyle}>
+        {message}
+      </div>
+    )
+  }
+  const ErrorMessage = ({errorMessage}) => {
+    if (errorMessage === ''){
+      return null
+    }
+    const errorMessageStyle = {
+      color: 'red',
+      background: 'lightgrey',
+      fontSize: '25px',
+      border: '5px solid rgba(0, 0.05, 0, 0.05)',
+      borderColor: 'red',
+      padding: '10px',
+      margin: '10px'
+    }
+    return(
+      <div style = {errorMessageStyle}>
+        {errorMessage}
+      </div>
+    )
+  }
+
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Message message = {message} setMessage = {setAddMessage} />
+      <ErrorMessage errorMessage = {errorMessage} setErrorMessage = {setErrorMessage} />
 
       <Filter newSearch = {newSearch} setSearch = {setSearch} persons = {persons} />
 
       <h3>Add a new </h3>
 
-      <PersonForm persons = {persons} setPersons = {setPersons} />   
+      <PersonForm persons = {persons} setPersons = {setPersons} setMessage = {setErrorMessage}/>   
 
       <h3>Numbers</h3>
 
-      <Contacts persons = {persons} newSearch = {newSearch} setPersons = {setPersons} />
+      <Contacts persons = {persons} newSearch = {newSearch} setPersons = {setPersons} setErrorMessage = {setErrorMessage} />
     </div>
   )
 }

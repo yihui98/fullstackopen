@@ -1,7 +1,7 @@
 import React from 'react'
 import phoneService from '../services/phonebook.js'
 
-const Contacts = ({persons, newSearch, setPersons}) => {
+const Contacts = ({persons, newSearch, setPersons, setErrorMessage}) => {
     const personsToShow = newSearch === ''
     ? persons
     : persons.filter(person => person.name.includes(newSearch))
@@ -27,9 +27,7 @@ const Contacts = ({persons, newSearch, setPersons}) => {
       .then(allBook => {
       setPersons(persons.filter(p => p.id !== id))})
       .catch(error => {
-        alert(
-          `the contact '${person.name}' was already deleted from server`
-        )
+        setErrorMessage(`the contact '${person.name}' was already deleted from server`)
         setPersons(persons.filter(n => n.id !== id-1)) //filster out deleted note
       }) 
     }
