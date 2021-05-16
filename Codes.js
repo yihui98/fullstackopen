@@ -44,7 +44,17 @@ const person = {
   name: name,
   age: age
 } <-older version
-const person = {name, age}  
+const person = {name, age}
+
+{
+  "scripts": {
+    //...
+    "build:ui": "rm -rf build && cd ../part2-notes/ && npm run build --prod && cp -r build ../notes-backend",
+    "deploy": "git push heroku HEAD:master",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",    
+    "logs:prod": "heroku logs --tail"
+  }
+} //add scripts to frontend to streamline new production build.
 
 */
 
