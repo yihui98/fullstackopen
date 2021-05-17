@@ -40,7 +40,7 @@ const App = () => {
       return null
     }
     return(
-      <div style = {NotificationStyle}>
+    <div style = {NotificationStyle}>
         {message}
       </div>
     )
