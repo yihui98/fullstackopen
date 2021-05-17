@@ -1,3 +1,4 @@
+
 https://morning-bastion-54031.herokuapp.com //notes
 https://sleepy-everglades-24943.herokuapp.com //phonebook
 
@@ -41,7 +42,6 @@ node_modules/.bin/nodemon index.js //start application with nodemon, browser has
 "dev": "nodemon index.js" //add line to script
 npm run dev //use this line instead of above
 
-
 put - modify one resource, post - add child resource to parent resource
 
 npm install cors //install to backend rep, allow requests from other origin (port 3000)
@@ -69,3 +69,7 @@ npm install dotenv
 npm install mongoose-unique-validator
 
 heroku config:set MONGODB_URI='mongodb+srv://fullstack:secretpasswordhere@cluster0-ostce.mongodb.net/note-app?retryWrites=true'
+
+npm install --save-dev jest //testing library
+"test": "jest --verbose" //add to script
+"jest":{ "testEnvironment": "node"} //add to end of package.json
