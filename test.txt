@@ -1,0 +1,89 @@
+
+https://morning-bastion-54031.herokuapp.com //notes
+https://sleepy-everglades-24943.herokuapp.com //phonebook
+
+npx create-react-app part1
+cd part1
+npm start
+
+npx kill-port 3000
+
+git remote add origin https://github.com/yihui98/fullstackopen.git
+
+
+
+git add <filename>
+
+
+git commit -m "Your message about the commit"
+
+
+git checkout -b <my branch name>
+
+
+git push origin yourbranchname
+
+
+git pull origin master/ git pull
+
+
+npm install axios
+npm install json-server --save-dev //install json-server as a development dependency
+"server": "json-server -p3001 --watch db.json" //add line to scripts of package.json
+npm run server
+
+node //starts up node-repl, useful for testing when writing application code
+
+npm init
+npm install express //abstraction of node
+npm install --save-dev nodemon //automatically restart node application if changes detected
+"start": "node index.js" //add line to script to use node index.js as alternative to npm start
+node_modules/.bin/nodemon index.js //start application with nodemon, browser has to refreshed manually
+"dev": "nodemon index.js" //add line to script
+npm run dev //use this line instead of above
+
+put - modify one resource, post - add child resource to parent resource
+
+npm install cors //install to backend rep, allow requests from other origin (port 3000)
+const cors = require('cors')
+app.use(cors())
+
+Deploying to the internet(Heroku)
+heroku login //Login to heroku account
+touch Procfile //edit with notepad and add web:npm start
+const PORT = process.env.PORT||3001 //change definition of port in application
+git init //create new repo
+
+
+touch .gitignore //edit with notepad and add node_modules
+heroku create
+git remote -v //check if a remote named heroku has been set
+git push heroku HEAD:master / git push heroku HEAD:main --force/ git push heroku main
+
+Frontend production build
+npm run build //for apps that are created with create-react-app, returns directory of minified code
+1. copy production build to the root of the backend repository and configure the backend to
+   show the frontend's main page.
+app.use(express.static('build'))
+
+npm install mongoose //rmb to url encode the password if special character is used
+npm install dotenv
+npm install mongoose-unique-validator
+
+heroku config:set MONGODB_URI='mongodb+srv://fullstack:secretpasswordhere@cluster0-ostce.mongodb.net/note-app?retryWrites=true'
+
+npm install --save-dev jest //testing library
+"test": "jest --verbose" //add to script
+"jest":{ "testEnvironment": "node"} //add to end of package.json
+npm test -- tests/note_api.test.js //test a specific file
+npm test -- -t "a specific note is within the returned notes" //running tests with a specific name
+npm test -- -t 'notes' //run all the tests that contain notes in their name
+
+npm install lodash //array worker
+npm install --save-dev supertest
+npm install --save-dev cross-env
+npm install express-async-errors //eliminates try-catch blocks, automatically pass execution to error handling middleware if exception occurs
+
+npm install bcrypt
+npm install mongoose-unique-validator //check uniqueness of a field in a schema
+npm install jsonwebtoken
