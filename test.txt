@@ -83,3 +83,7 @@ npm install lodash //array worker
 npm install --save-dev supertest
 npm install --save-dev cross-env
 npm install express-async-errors //eliminates try-catch blocks, automatically pass execution to error handling middleware if exception occurs
+
+npm install bcrypt
+npm install mongoose-unique-validator //check uniqueness of a field in a schema
+npm install jsonwebtoken

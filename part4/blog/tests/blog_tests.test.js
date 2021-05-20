@@ -55,6 +55,9 @@ const initialBlogs = [
       __v: 0
     }  
   ]
+
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIxIiwiaWQiOiI2MGE1ZWJjODZmNzlhMjA1MzhmZjViNzEiLCJpYXQiOjE2MjE1MDU4ODN9.PE0REU6qbfyhUPH5VoGUSzebjjWMFAj8JgTrrnita1g"
+
 beforeEach(async () => {
     await Blog.deleteMany({})
     
@@ -85,11 +88,12 @@ test('a valid blog can be added ', async () => {
     title: "Valid Blog",
     author: "me",
     url: "www.newblog.com",
-    likes: 1
+    likes: 1,
   }
 
   await api
     .post('/api/blogs')
+    .set('Authorization', token)
     .send(newBlog)
     .expect(200)
     .expect('Content-Type', /application\/json/)
@@ -113,6 +117,7 @@ test('blog with likes property missing -> default to 0 ', async () => {
   
     await api
       .post('/api/blogs')
+      .set('Authorization', token)
       .send(newBlog)
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -132,8 +137,9 @@ test('blog with missing title/url ', async () => {
   
     await api
       .post('/api/blogs')
+      .set('Authorization', token)
       .send(newBlog)
-      .expect(400)
+      .expect(401)
 
   })
 
