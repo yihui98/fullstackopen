@@ -10,10 +10,7 @@ npx kill-port 3000
 
 git remote add origin https://github.com/yihui98/fullstackopen.git
 
-
-
 git add <filename>
-
 
 git commit -m "Your message about the commit"
 
@@ -87,3 +84,9 @@ npm install express-async-errors //eliminates try-catch blocks, automatically pa
 npm install bcrypt
 npm install mongoose-unique-validator //check uniqueness of a field in a schema
 npm install jsonwebtoken
+npm install prop-types
+npm install --save-dev @testing-library/react @testing-library/jest-dom
+
+npm install --save-dev cypress //End to End testing library
+npm install eslint-plugin-cypress --save-dev //eslint ignore cypress error
+npm run cypress:open

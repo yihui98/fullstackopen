@@ -16,21 +16,21 @@ blogsRouter.get('/:id', async (request, response) => {
   response.json(blog)
 })
   
-blogsRouter.post('/', userExtractor, async (request, response) => {
+blogsRouter.post('/', async (request, response) => {
     const body = request.body
 
     const decodedToken = jwt.verify(request.token, process.env.SECRET)
     if (!decodedToken || !decodedToken.id) {
       return response.status(401).json({ error: 'token missing or invalid' })
     }
-    const user = request.user
+    const user = await User.findById(decodedToken.id)
 
       const blog = new Blog({
       title: body.title,
       author: body.author,
       url: body.url,
       likes: body.likes,
-      user: user.id
+      user: user
     })
 
     const newBlog = await blog.save()
@@ -41,15 +41,15 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
   
   })
 
-blogsRouter.delete('/:id', userExtractor, async (request, response) => {
-  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+blogsRouter.delete('/:id', async (request, response) => {
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
     if (!decodedToken || !decodedToken.id) {
       return response.status(401).json({ error: 'token missing or invalid' })
     }
 
-  const userID = request.user._id
-  if (userID == decodedToken.id){
+  const user = await User.findById(decodedToken.id)
+  if (user._id == decodedToken.id){
     await Blog.findByIdAndRemove(request.params.id)
     return response.status(204).end()
   }
@@ -58,15 +58,10 @@ blogsRouter.delete('/:id', userExtractor, async (request, response) => {
 })
 
 blogsRouter.put('/:id', async (request, response) => {
-  const numLikes = request.body
-  let blog = await Blog.findById(request.params.id)
+  const blog = request.body
 
-  blog.likes = numLikes.likes
-
-  const updatedBlog = blog
-
-  const blogs = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
-  response.json(blogs)
+  const updatedblog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
+  response.json(updatedblog.toJSON())
 })
 
   module.exports = blogsRouter
