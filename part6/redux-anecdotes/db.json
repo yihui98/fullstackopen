@@ -3,13 +3,13 @@
     {
       "content": "If it hurts, do it more often",
       "id": "47145",
-      "votes": 7,
+      "votes": 51,
       "likes": 5
     },
     {
       "content": "Adding manpower to a late software project makes it later!",
       "id": "21149",
-      "votes": 1,
+      "votes": 4,
       "likes": 2
     },
     {
@@ -27,7 +27,7 @@
     {
       "content": "Premature optimization is the root of all evil.",
       "id": "25170",
-      "votes": 0,
+      "votes": 1,
       "likes": null
     },
     {
@@ -43,8 +43,13 @@
     },
     {
       "content": "TEST 2",
-      "votes": 2,
+      "votes": 7,
       "id": "E2mmz6_"
+    },
+    {
+      "content": "test 3 = does connect works",
+      "votes": 1,
+      "id": "uB51Hdo"
     }
   ]
 }

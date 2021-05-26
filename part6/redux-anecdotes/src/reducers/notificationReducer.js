@@ -11,7 +11,6 @@ export const addNotification = (message, time) => {
       }, time * 1000);
   }
 }
-
 export const removeNotification = () => {
     return{
         type: "REMOVE"
@@ -23,6 +22,11 @@ const reducer = (state = initialState, action) => {
     console.log('action', action)
     switch (action.type){
       case "MESSAGE":
+        console.log(action.data)
+        console.log(state)
+        if (action.data === state){
+          clearTimeout()
+        }
         return state = action.data
       case "REMOVE":
         return state = ''

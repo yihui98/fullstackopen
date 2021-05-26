@@ -95,3 +95,4 @@ npm install redux
 npm install --save-dev deep-freeze //check whether functions are pure
 npm install react-redux
 npm install --save-dev redux-devtools-extension
+npm install redux-thunk
