@@ -24,6 +24,7 @@ export const vote = (anecdote) => {
 export const initializeAnecdotes = () => {
   return async dispatch =>{
     const anecdotes = await anecdoteService.getAll()
+    console.log("ANEC", anecdotes)
     await dispatch({
       type: 'INIT',
       data: anecdotes

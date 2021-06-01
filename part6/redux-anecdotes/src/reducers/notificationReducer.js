@@ -1,12 +1,17 @@
 const initialState = ''
 
+let timeoutID
+
 export const addNotification = (message, time) => {
   return async dispatch => {
       dispatch({
         type: 'MESSAGE',
         data: message
       })
-      setTimeout(() => {
+      if (timeoutID){
+        clearTimeout(timeoutID)
+      }
+      timeoutID = setTimeout(() => {
         dispatch(removeNotification())
       }, time * 1000);
   }
@@ -22,11 +27,6 @@ const reducer = (state = initialState, action) => {
     console.log('action', action)
     switch (action.type){
       case "MESSAGE":
-        console.log(action.data)
-        console.log(state)
-        if (action.data === state){
-          clearTimeout()
-        }
         return state = action.data
       case "REMOVE":
         return state = ''

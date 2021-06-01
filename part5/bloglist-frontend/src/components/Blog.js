@@ -1,77 +1,94 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { addLikes, deleteBlog as handleDelete, addComments } from '../reducers/blogs'
+import { useDispatch, useSelector } from 'react-redux'
+import { useParams, Link } from 'react-router-dom'
+import { Table, Button } from 'react-bootstrap'
 
-const Blog = ({ blog, handleLikes, handleDelete, user }) => {
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
+
+const Comments = ({ comments, handleComments }) => {
+
+
+  const addComment = async (event) => {
+    event.preventDefault()
+    handleComments(event.target.comment.value)
+    event.target.comment.value = ''
+  }
+  return(
+    <div>
+      <h3> comments </h3>
+      <form onSubmit = {addComment}>
+        <input name ="comment" type = "string" />
+        <button type = "submit"> add comment </button>
+      </form>
+      {comments.map((comment, id ) =>
+        <div key = {id}> {comment} </div>
+          )}
+    </div>
+  )
+}
+
+
+const Blog = ({ user }) => {
+  const id = useParams().id
+  const blogs = useSelector(state => state.blog)
+  console.log()
+
+  const blog = blogs.find(n => n.id === id)
+  if (!blogs || !blog){
+    return null
   }
 
-  const addLikes = () => {
-    //const newBlog = blog
-    //newBlog.likes = blog.likes + 1
-    console.log(blog)
-    const newBlog = {
-      "title": blog.title,
-      "author": blog.author,
-      "url": blog.url,
-      "likes": blog.likes + 1,
-      "id": blog.id
-    }
-    console.log(newBlog)
-    handleLikes(newBlog)
-  }
+  const dispatch = useDispatch()
 
   const deleteBlog = () => {
     const ok = window.confirm(`Remove blog ${blog.title} by ${blog.author}`)
     if (ok){
-      handleDelete(blog.id)
+      dispatch(handleDelete(blog.id))
     }
   }
 
-  const [visible, setVisible] = useState(false)
-
-  const hideWhenVisible = { display: visible ? 'none' : '' }
-  const showWhenVisible = { display: visible ? '' : 'none' }
-
-  const toggleVisibility = () => {
-    setVisible(!visible)
+  const handleLikes = (blog) => {
+    dispatch(addLikes(blog))
   }
-  const sameUser = { display: user.id === blog.user.id ? '': 'none' }
+  const handleComments = (comment) => {
+    dispatch(addComments(comment, blog ))
+  }
+
+  var sameUser = null
+  if (user && blog.user){
+    sameUser = { display: user.id === blog.user.id ? '': 'none' }
+  }
+
 
   return (
-  <div className = 'blog'>
-    <div style={hideWhenVisible}>
-      <div style = {blogStyle}>
-        {blog.title} {blog.author}<button onClick={toggleVisibility}>show</button>
-      </div>
+    <div className = 'blog'>
+              <Table size = "sm">
+                <tbody>
+                <tr>
+                  <td>Title:</td>
+                  <td>{blog.title}</td>
+                </tr>
+                <tr>
+                  <td>Author:</td>
+                  <td>{blog.author}</td>
+                </tr>
+                <tr>
+                  <td>Link:</td>
+                  <td><Link to = {blog.url}>{blog.url}</Link></td>
+                </tr>
+                <tr>
+                  <td>Likes:</td>
+                  <td>{blog.likes} <Button class="btn btn-primary btn-sm" id = 'like' onClick = {() => handleLikes(blog)}>like</Button></td>
+                </tr>
+                </tbody>
+                <div style = {sameUser}>
+                <Button class="btn btn-danger btn-sm" onClick = {deleteBlog}>remove</Button>
+              </div>
+              <div>
+                <Comments comments = {blog.comments} handleComments= {handleComments} />
+              </div>
+              </Table>
     </div>
-    <div style={showWhenVisible}>
-      <div style={blogStyle}>
-        <div>
-            <div>
-            {blog.title} {blog.author} <button onClick={toggleVisibility}>hide</button>
-            </div>
-            <div>
-            &nbsp;
-            {blog.url}
-            </div>
-            <div>
-            &nbsp;Likes: {blog.likes} <button id = 'like' onClick = {addLikes}>like</button>
-            </div>
-            <div>
-            &nbsp;
-            {blog.author}
-            </div>
-            <div style = {sameUser}>
-              <button onClick = {deleteBlog}>remove</button>
-            </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
 )}
 

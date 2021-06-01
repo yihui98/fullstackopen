@@ -1,9 +1,11 @@
 
 https://morning-bastion-54031.herokuapp.com //notes
 https://sleepy-everglades-24943.herokuapp.com //phonebook
+rm -rf .git //remove git configuration of cloned app
 
 npx create-react-app part1
 cd part1
+npm install
 npm start
 
 npx kill-port 3000
@@ -14,15 +16,11 @@ git add <filename>
 
 git commit -m "Your message about the commit"
 
-
 git checkout -b <my branch name>
-
 
 git push origin yourbranchname
 
-
 git pull origin master/ git pull
-
 
 npm install axios
 npm install json-server --save-dev //install json-server as a development dependency
@@ -96,3 +94,5 @@ npm install --save-dev deep-freeze //check whether functions are pure
 npm install react-redux
 npm install --save-dev redux-devtools-extension
 npm install redux-thunk
+
+npm install react-router-dom

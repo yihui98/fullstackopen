@@ -3,7 +3,7 @@ const User = require('../models/user')
 const Blog = require('../models/blogModel')
 const jwt = require('jsonwebtoken')
 const middleware = require('../utils/middleware')
-const userExtractor = middleware.userExtractor
+
 
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate('user',{username:1,name:1,id:1})
@@ -13,6 +13,14 @@ blogsRouter.get('/', async (request, response) => {
 
 blogsRouter.get('/:id', async (request, response) => {
   const blog = await Blog.findById(request.params.id).populate('user',{username:1,name:1,id:1})
+  response.json(blog)
+})
+
+blogsRouter.post('/:id/comments', async (request, response) => {
+  const blog = await Blog.findById(request.params.id)
+  blog.comments = blog.comments.concat(request.body.comment)
+  await blog.save()
+
   response.json(blog)
 })
   
@@ -30,7 +38,8 @@ blogsRouter.post('/', async (request, response) => {
       author: body.author,
       url: body.url,
       likes: body.likes,
-      user: user
+      user: user,
+      comments: []
     })
 
     const newBlog = await blog.save()
@@ -58,10 +67,12 @@ blogsRouter.delete('/:id', async (request, response) => {
 })
 
 blogsRouter.put('/:id', async (request, response) => {
-  const blog = request.body
+  console.log(request)
+  const blog = request.body.blog
+  blog.user = blog.user.id
 
-  const updatedblog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
-  response.json(updatedblog.toJSON())
+  const updatedblog = await (await Blog.findByIdAndUpdate(request.params.id, blog, {new : true})).populated('user')
+  response.json(updatedblog)
 })
 
   module.exports = blogsRouter
