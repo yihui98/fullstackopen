@@ -1,6 +1,9 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
+import { Alert } from 'react-bootstrap'
 
-const Notification = ({ message, positive }) => {
+const Notification = () => {
+    /*
     const ErrorStyle = {
         color: 'red',
         background: 'lightgrey',
@@ -15,19 +18,22 @@ const Notification = ({ message, positive }) => {
         border: '1px solid rgba(0,0,0,0.05)',
         borderColor : 'green'
         }
+        */
+    const message = useSelector(state => state.message)
+
     if (message === null){
         return null
-    } else if (positive){
+    } else if (message.positive){
         return (
-            <div style = {NormalStyle}>
-            {message}
-            </div>
+           <Alert variant = "warning">
+               {message.content}
+           </Alert>
         )
     }
     return (
-        <div className = 'error' style = {ErrorStyle}>
-        {message}
-        </div>
+        <Alert variant = "danger">
+            {message.content}
+        </Alert>
     )
 
 }
