@@ -96,3 +96,10 @@ npm install --save-dev redux-devtools-extension
 npm install redux-thunk
 
 npm install react-router-dom
+
+npm install apollo-server graphql
+npm install uuid //generate unique ids
+
+npm install @apollo/client graphql
+npm install apollo-link-context //to retrieve context from headers
+npm install @apollo/client subscriptions-transport-ws //for subscriptions, install at frontend
