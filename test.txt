@@ -103,3 +103,12 @@ npm install uuid //generate unique ids
 npm install @apollo/client graphql
 npm install apollo-link-context //to retrieve context from headers
 npm install @apollo/client subscriptions-transport-ws //for subscriptions, install at frontend
+
+npm install --save-dev ts-node typescript //install ts-node and typescript packages
+npm install --save-dev @types/node //install node types package
+npm install --save-dev ts-node-dev //alternative of nodemon for ts-node, auto-reloading development environment
+npm install --save-dev eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser //prevent developers from using "any" type
+
+npm run tsc //create production build
+
+npx create-react-app my-app --template typescript //create typescript app
