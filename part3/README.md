@@ -438,7 +438,7 @@ If the command causes an error, give the value of MONGODB_URI in apostrophes:
 
     $ heroku config:set MONGODB_URI='mongodb+srv://fullstack:secretpasswordhere@cluster0-ostce.mongodb.net/note-app?retryWrites=true'
 
-Lint:
+## Lint:
 
 Generically, lint or a linter is any tool that detects and flags errors in programming languages, including stylistic errors. The term lint-like behavior is sometimes applied to the process of flagging suspicious language usage. Lint-like tools generally perform static analysis of source code.
 
