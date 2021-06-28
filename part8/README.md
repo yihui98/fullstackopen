@@ -698,6 +698,273 @@ The person schema has been defined as follows:
 
 We also included a few validations. required: true, which ensures that value exists, is actually redundant as just using GraphQL ensures that the fields exist. However it is good to also keep validation in the database.
 
+        const { ApolloServer, UserInputError, gql } = require('apollo-server')
+        const mongoose = require('mongoose')
+        const Person = require('./models/person')
+
+        const MONGODB_URI = 'mongodb+srv://fullstack:halfstack@cluster0-ostce.mongodb.net/graphql?retryWrites=true'
+
+        console.log('connecting to', MONGODB_URI)
+
+        mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
+          .then(() => {
+            console.log('connected to MongoDB')
+          })
+          .catch((error) => {
+            console.log('error connection to MongoDB:', error.message)
+          })
+
+        const typeDefs = gql`
+          ...
+        `
+
+        const resolvers = {
+          Query: {
+            personCount: () => Person.collection.countDocuments(),
+            allPersons: (root, args) => {
+              // filters missing
+              return Person.find({})
+            },
+            findPerson: (root, args) => Person.findOne({ name: args.name })
+          },
+          Person: {
+            address: root => {
+              return {
+                street: root.street,
+                city: root.city
+              }
+            }
+          },
+          Mutation: {
+            addPerson: (root, args) => {
+              const person = new Person({ ...args })
+              return person.save()
+            },
+            editNumber: async (root, args) => {
+              const person = await Person.findOne({ name: args.name })
+              person.phone = args.phone
+              return person.save()
+            }
+          }
+        }
+
+The changes are pretty straightforward. However there are a few noteworthy things. As we remember, in Mongo the identifying field of an object is called _id and we previously had to parse the name of the field to id ourselves. Now GraphQL can do this automatically.
+
+Another noteworthy thing is that the resolver functions now return a promise, when they previously returned normal objects. When a resolver returns a promise, Apollo server sends back the value which the promise resolves to.
+
+#### Validation
+
+For handling possible validation errors in the schema, we must add an error handling try/catch-block to the save-method. When we end up in the catch, we throw a suitable exception:
+
+        Mutation: {
+          addPerson: async (root, args) => {
+              const person = new Person({ ...args })
+
+              try {
+                await person.save()
+              } catch (error) {
+                throw new UserInputError(error.message, {
+                  invalidArgs: args,
+                })
+              }
+              return person
+          },
+            editNumber: async (root, args) => {
+              const person = await Person.findOne({ name: args.name })
+              person.phone = args.phone
+
+              try {
+                await person.save()
+              } catch (error) {
+                throw new UserInputError(error.message, {
+                  invalidArgs: args,
+                })
+              }
+              return person
+            }
+        }
+
+### User and log in
+
+The user schema is as follows:
+
+    const mongoose = require('mongoose')
+    const uniqueValidator = require('mongoose-unique-validator')
+
+    const schema = new mongoose.Schema({
+      username: {
+        type: String,
+        required: true,
+        unique: true,
+        minlength: 3
+      },
+      friends: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Person'
+        }
+      ],
+    })
+
+    schema.plugin(uniqueValidator)
+    module.exports = mongoose.model('User', schema)
+
+Every user is connected to a bunch of other persons in the system through the friends field. The idea is that when a user, e.g. mluukkai, adds a person, e.g. Arto Hellas, to the list, the person is added to their friends list. This way logged in users can have their own, personalized, view in the application.
+
+Let's extend the schema like so:
+
+        type User {
+          username: String!
+          friends: [Person!]!
+          id: ID!
+        }
+
+        type Token {
+          value: String!
+        }
+
+        type Query {
+          // ..
+          me: User
+        }
+
+        type Mutation {
+          // ...
+          createUser(
+            username: String!
+          ): User
+          login(
+            username: String!
+            password: String!
+          ): Token
+        }
+        
+The query me returns the currently logged in user. New users are created with the createUser mutation, and logging in happens with login -mutation.
+
+The resolvers of the mutations are as follows:
+
+        const jwt = require('jsonwebtoken')
+
+        const JWT_SECRET = 'NEED_HERE_A_SECRET_KEY'
+
+        Mutation: {
+          // ..
+          createUser: (root, args) => {
+            const user = new User({ username: args.username })
+
+            return user.save()
+              .catch(error => {
+                throw new UserInputError(error.message, {
+                  invalidArgs: args,
+                })
+              })
+          },
+          login: async (root, args) => {
+            const user = await User.findOne({ username: args.username })
+
+            if ( !user || args.password !== 'secret' ) {
+              throw new UserInputError("wrong credentials")
+            }
+
+            const userForToken = {
+              username: user.username,
+              id: user._id,
+            }
+
+            return { value: jwt.sign(userForToken, JWT_SECRET) }
+          },
+        },
+
+Let's now expand the definition of the server object by adding a third parameter context to the constructor call:
+
+        const server = new ApolloServer({
+          typeDefs,
+          resolvers,
+          context: async ({ req }) => {
+            const auth = req ? req.headers.authorization : null
+            if (auth && auth.toLowerCase().startsWith('bearer ')) {
+              const decodedToken = jwt.verify(
+                auth.substring(7), JWT_SECRET
+              )
+              const currentUser = await User.findById(decodedToken.id).populate('friends')
+              return { currentUser }
+            }
+          }
+        })
+
+### Friends list
+
+Let's first remove all persons not in anyone's friends list from the database.
+
+addPerson mutation changes like so:
+
+        Mutation: {
+          addPerson: async (root, args, context) => {
+            const person = new Person({ ...args })
+            const currentUser = context.currentUser
+
+            if (!currentUser) {
+              throw new AuthenticationError("not authenticated")
+            }
+
+            try {
+              await person.save()
+              currentUser.friends = currentUser.friends.concat(person)
+              await currentUser.save()
+            } catch (error) {
+              throw new UserInputError(error.message, {
+                invalidArgs: args,
+              })
+            }
+
+            return person
+          },
+          //...
+        }
+        
+If a logged in user cannot be found from the context, an AuthenticationError is thrown. Creating new persons is now done with async/await syntax, because if the operation is successful, the created person is added to the friends list of the user.
+
+Let's also add functionality for adding an existing user to your friends list. The mutation is as follows:
+
+        type Mutation {
+          // ...
+          addAsFriend(
+            name: String!
+          ): User
+        }
+        
+And the mutations resolver:
+
+          addAsFriend: async (root, args, { currentUser }) => {
+            const nonFriendAlready = (person) => 
+              !currentUser.friends.map(f => f._id).includes(person._id)
+
+            if (!currentUser) {
+              throw new AuthenticationError("not authenticated")
+            }
+
+            const person = await Person.findOne({ name: args.name })
+            if ( nonFriendAlready(person) ) {
+              currentUser.friends = currentUser.friends.concat(person)
+            }
+
+            await currentUser.save()
+
+            return currentUser
+          },
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
