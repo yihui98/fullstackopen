@@ -953,24 +953,333 @@ And the mutations resolver:
             return currentUser
           },
 
+## Login and updating the cache
 
+        npm install mongoose mongoose-unique-validator
 
+The LoginForm-component works pretty much just like all other components doing mutations we have previously created.
 
+        import React, { useState, useEffect } from 'react'
+        import { useMutation } from '@apollo/client'
+        import { LOGIN } from '../queries'
 
+        const LoginForm = ({ setError, setToken }) => {
+          const [username, setUsername] = useState('')
+          const [password, setPassword] = useState('')
 
+          const [ login, result ] = useMutation(LOGIN, {
+            onError: (error) => {
+              setError(error.graphQLErrors[0].message)
+            }
+          })
 
+          useEffect(() => {
+            if ( result.data ) {
+              const token = result.data.login.value
+              setToken(token)
+              localStorage.setItem('phonenumbers-user-token', token)
+            }
+          }, [result.data]) // eslint-disable-line
 
+          const submit = async (event) => {
+            event.preventDefault()
 
+            login({ variables: { username, password } })
+          }
 
+          return (
+            <div>
+              <form onSubmit={submit}>
+                <div>
+                  username <input
+                    value={username}
+                    onChange={({ target }) => setUsername(target.value)}
+                  />
+                </div>
+                <div>
+                  password <input
+                    type='password'
+                    value={password}
+                    onChange={({ target }) => setPassword(target.value)}
+                  />
+                </div>
+                <button type='submit'>login</button>
+              </form>
+            </div>
+          )
+        }
 
+        export default LoginForm
 
+We can reset the cache using the resetStore method of an Apollo client object. The client can be accessed with the useApolloClient hook:
 
+        const App = () => {
+          const [token, setToken] = useState(null)
+          const [errorMessage, setErrorMessage] = useState(null)
+          const result = useQuery(ALL_PERSONS)
+          const client = useApolloClient()
 
+          if (result.loading)  {
+            return <div>loading...</div>
+          }
 
+          const logout = () => {
+            setToken(null)
+            localStorage.clear()
+            client.resetStore()
+          }
 
+        }
 
+## Adding token to a header
 
+After the backend changes, creating new persons requires that a valid user token is sent with the request. In order to send the token, we have to change the way we define the ApolloClient-object in index.js a little.
 
+        import { setContext } from 'apollo-link-context'
 
+        const authLink = setContext((_, { headers }) => {
+          const token = localStorage.getItem('phonenumbers-user-token')
+          return {
+            headers: {
+              ...headers,
+              authorization: token ? `bearer ${token}` : null,
+            }
+          }
+        })
+
+        const httpLink = new HttpLink({ uri: 'http://localhost:4000' })
+
+        const client = new ApolloClient({
+          cache: new InMemoryCache(),
+          link: authLink.concat(httpLink)
+        })
+
+We also need to install the library required by this modification
+
+        npm install apollo-link-context
+
+### Updating cache, revisited
+
+We have to update the cache of the Apollo client on creating new persons. We can update it using the mutation's refetchQueries option to define that the ALL_PERSONS query is done again.
+
+        const PersonForm = ({ setError }) => {
+          // ...
+
+          const [ createPerson ] = useMutation(CREATE_PERSON, {
+            refetchQueries: [  {query: ALL_PERSONS} ],
+            onError: (error) => {
+              setError(error.graphQLErrors[0].message)
+            }
+          })
+
+It is possible to optimize the solution by handling updating the cache ourselves. This is done by defining a suitable update-callback for the mutation, which Apollo runs after the mutation:
+
+        const PersonForm = ({ setError }) => {
+          // ...
+
+          const [ createPerson ] = useMutation(CREATE_PERSON, {
+            onError: (error) => {
+              setError(error.graphQLErrors[0].message)
+            },
+            update: (store, response) => {
+              const dataInStore = store.readQuery({ query: ALL_PERSONS })
+              store.writeQuery({
+                query: ALL_PERSONS,
+                data: {
+                  ...dataInStore,
+                  allPersons: [ ...dataInStore.allPersons, response.data.addPerson ]
+                }
+              })
+            }
+          })
+
+          // ..
+        }  
+
+## Fragments
+
+        fragment PersonDetails on Person {
+          name
+          phone 
+          address {
+            street 
+            city
+          }
+        }
+
+With the fragment we can do the queries in a compact form:
+
+        query {
+          allPersons {
+            ...PersonDetails
+          }
+        }
+
+        query {
+          findPerson(name: "Pekka Mikkola") {
+            ...PersonDetails
+          }
+        }
+
+It is much better to declare the fragment once and save it to a variable.
+
+        const PERSON_DETAILS = gql`
+          fragment PersonDetails on Person {
+            id
+            name
+            phone 
+            address {
+              street 
+              city
+            }
+          }
+        `
+        
+Declared like this, the fragment can be placed to any query or mutation using a dollar sign and curly braces:
+
+        const ALL_PERSONS = gql`
+          {
+            allPersons  {
+              ...PersonDetails
+            }
+          }
+          ${PERSON_DETAILS}  
+        `
+## Subscriptions
+
+After an application has made a subscription, it starts to listen to the server. When changes occur on the server, it sends a notification to all of its subscribers.
+
+Let's implement subscriptions for subscribing for notifications about new persons added.
+
+There are not many changes to the server. The schema changes like so:
+
+        type Subscription {
+          personAdded: Person!
+        }    
+
+The required changes are as follows:
+
+        const { PubSub } = require('apollo-server')
+        const pubsub = new PubSub()
+
+          Mutation: {
+            addPerson: async (root, args, context) => {
+              const person = new Person({ ...args })
+              const currentUser = context.currentUser
+
+              if (!currentUser) {
+                throw new AuthenticationError("not authenticated")
+              }
+
+              try {
+                await person.save()
+                currentUser.friends = currentUser.friends.concat(person)
+                await currentUser.save()
+              } catch (error) {
+                throw new UserInputError(error.message, {
+                  invalidArgs: args,
+                })
+              }
+
+              pubsub.publish('PERSON_ADDED', { personAdded: person })
+
+              return person
+            },  
+          },
+          Subscription: {
+            personAdded: {
+              subscribe: () => pubsub.asyncIterator(['PERSON_ADDED'])
+            },
+          },
+
+### Subscriptions on the client
+
+The configuration in index.js has to be modified like so:
+
+        import { 
+          ApolloClient, ApolloProvider, HttpLink, InMemoryCache, 
+          split
+        } from '@apollo/client'
+        import { setContext } from 'apollo-link-context'
+
+        import { getMainDefinition } from '@apollo/client/utilities'
+        import { WebSocketLink } from '@apollo/client/link/ws'
+
+        const authLink = setContext((_, { headers }) => {
+          const token = localStorage.getItem('phonenumbers-user-token')
+          return {
+            headers: {
+              ...headers,
+              authorization: token ? `bearer ${token}` : null,
+            }
+          }
+        })
+
+        const httpLink = new HttpLink({
+          uri: 'http://localhost:4000',
+        })
+
+        const wsLink = new WebSocketLink({
+          uri: `ws://localhost:4000/graphql`,
+          options: {
+            reconnect: true
+          }
+        })
+
+        const splitLink = split(
+          ({ query }) => {
+            const definition = getMainDefinition(query)
+            return (
+              definition.kind === 'OperationDefinition' &&
+              definition.operation === 'subscription'
+            );
+          },
+          wsLink,
+          authLink.concat(httpLink),
+        )
+
+        const client = new ApolloClient({
+          cache: new InMemoryCache(),
+          link: splitLink
+        })
+
+        ReactDOM.render(
+          <ApolloProvider client={client}>
+            <App />
+          </ApolloProvider>, 
+          document.getElementById('root')
+        )
+
+For this to work, we have to install some dependencies:
+
+        npm install @apollo/client subscriptions-transport-ws
+
+The subscriptions are done using the useSubscription hook function.
+
+        export const PERSON_ADDED = gql`
+          subscription {
+            personAdded {
+              ...PersonDetails
+            }
+          }
+
+        ${PERSON_DETAILS}
+        `
+
+        import {
+          useQuery, useMutation, useSubscription, useApolloClient
+        } from '@apollo/client'
+
+        const App = () => {
+          // ...
+
+          useSubscription(PERSON_ADDED, {
+            onSubscriptionData: ({ subscriptionData }) => {
+              console.log(subscriptionData)
+            }
+          })
+
+          // ...
+        }
 
 
